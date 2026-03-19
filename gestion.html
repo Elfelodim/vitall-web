@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Gestión | ClickSalud</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Mismos Estilos base -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Estilos específicos para la tabla de administración -->
+    <style>
+        .admin-header {
+            background-color: var(--blue-dark);
+            padding: 1rem 0;
+            color: white;
+        }
+        .admin-header .logo {
+            color: white;
+        }
+        .header-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .header-links a {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .header-links a:hover, .header-links a.active {
+            color: white;
+        }
+        .admin-dashboard {
+            padding: 3rem 0;
+            min-height: calc(100vh - 80px); /* ocupa el resto de la pantalla */
+        }
+        .table-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 0.95rem;
+        }
+        th {
+            background-color: var(--gray-50);
+            color: var(--gray-500);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        tr:hover {
+            background-color: var(--gray-50);
+        }
+        .td-name {
+            font-weight: 600;
+            color: var(--blue-main);
+        }
+        .badge-type {
+            background-color: var(--green-light);
+            color: var(--green-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .loading-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-500);
+        }
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+        /* Semáforo y Estados */
+        .select-estado {
+            padding: 0.3rem 0.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--gray-200);
+            font-size: 0.85rem;
+            font-family: inherit;
+            cursor: pointer;
+            background-color: white;
+            transition: var(--transition);
+        }
+        .select-estado:focus {
+            outline: none;
+            border-color: var(--blue-main);
+        }
+        .semaforo-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+        .row-alert td {
+            background-color: #fef2f2 !important; /* Rojo muy clarito */
+            border-bottom-color: #fecaca;
+        }
+        .row-alert .td-name {
+            color: #b91c1c; /* Rojo oscuro */
+        }
+        .tiempo-badge {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            display: block;
+            margin-top: 0.2rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <a href="index.html" class="logo">
+                    <img src="assets/images/logo.png" alt="ClickSalud Logo" style="height: 75px; width: auto; object-fit: contain;">
+                </a>
+                <nav class="header-links">
+                    <a href="gestion.html" class="active"><i class="ph ph-ticket"></i> Gestión Tickets</a>
+                    <a href="admin.html"><i class="ph ph-chart-pie"></i> Administración</a>
+                    <a href="configuracion.html"><i class="ph ph-gear"></i> Sistemas</a>
+                </nav>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="index.html" class="btn btn-sm" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); text-decoration: none; display: flex; align-items: center; gap: 0.3rem;">
+                        <i class="ph ph-house"></i> Inicio
+                </a>
+                <button class="btn btn-primary-outline btn-sm" onclick="cargarTickets()" style="background: transparent; color: white; border-color: white;">
+                    <i class="ph ph-arrows-clockwise"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-dashboard">
+        <div class="container">
+            <h2 class="section-title text-left" style="margin-bottom: 0.5rem;">Gestión de Solicitudes</h2>
+            <p class="text-gray-500" style="margin-bottom: 2rem;">Aquí puedes ver toda la información enviada por los clientes desde la web. Cambia el estado para llevar un control.</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Paciente</th>
+                            <th>Teléfono</th>
+                            <th>Trámite</th>
+                            <th>Estado y Semáforo</th>
+                            <th>Documento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTabla">
+                        <tr>
+                            <td colspan="6" class="loading-state">
+                                <i class="ph ph-spinner ph-spin" style="font-size: 2rem; color: var(--green); margin-bottom: 1rem;"></i>
+                                <p>Cargando información de la base de datos...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase & Custom Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="gestion.js"></script>
+</body>
+</html>

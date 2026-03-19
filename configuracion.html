@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Sistemas | ClickSalud</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Estilos base -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        .admin-header {
+            background-color: var(--blue-dark);
+            padding: 1rem 0;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .admin-header .logo { color: white; }
+        .header-links { display: flex; gap: 1.5rem; align-items: center; }
+        .header-links a {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .header-links a:hover, .header-links a.active { color: white; }
+        
+        .dashboard-container {
+            padding: 3rem 0;
+            min-height: calc(100vh - 80px);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media(max-width: 992px) {
+            .config-grid { grid-template-columns: 1fr; }
+        }
+
+        .config-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .config-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            color: var(--blue-dark);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--gray-100);
+            padding-bottom: 0.75rem;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            display: block; font-weight: 500; color: var(--gray-700); margin-bottom: 0.5rem; font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%; padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--radius-md); transition: var(--transition);
+        }
+        .form-group input:focus { border-color: var(--blue-main); outline: none; }
+        
+        .config-list { list-style: none; padding: 0; margin: 0; }
+        .config-list li {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .config-list li:last-child { border-bottom: none; }
+        
+        .item-info strong { display: block; color: var(--gray-800); font-size: 0.95rem; }
+        .item-info span { color: var(--gray-500); font-size: 0.85rem; }
+        
+        .btn-action {
+            background: none; border: none; cursor: pointer; color: var(--blue-main); font-size: 1.25rem; transition: color 0.3s;
+            display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 4px; border: 1px solid var(--gray-200); background: var(--gray-50);
+        }
+        .btn-action:hover { color: white; background-color: var(--blue-main); border-color: var(--blue-main); }
+        .btn-save { margin-top: 1rem; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <a href="index.html" class="logo">
+                    <img src="assets/images/logo.png" alt="ClickSalud Logo" style="height: 75px; width: auto; object-fit: contain;">
+                </a>
+                <nav class="header-links">
+                    <a href="gestion.html"><i class="ph ph-ticket"></i> Gestión Tickets</a>
+                    <a href="admin.html"><i class="ph ph-chart-pie"></i> Administración</a>
+                    <a href="configuracion.html" class="active"><i class="ph ph-gear"></i> Sistemas</a>
+                </nav>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="index.html" class="btn btn-sm" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); text-decoration: none; display: flex; align-items: center; gap: 0.3rem;">
+                        <i class="ph ph-house"></i> Inicio
+                </a>
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: white;">
+                    <div style="width: 35px; height: 35px; background: var(--blue-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">IT</div>
+                    <span style="font-size: 0.9rem;">Sistemas</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="container">
+            <h2 class="section-title text-left" style="margin-bottom: 0.5rem;">Configuración del Sistema</h2>
+            <p class="text-gray-500" style="margin-bottom: 2rem;">Panel exclusivo para personal de IT. Administra tarifas base, webhooks y códigos contables internos.</p>
+
+            <div class="config-grid">
+                <!-- Tarifas Card -->
+                <div class="config-card">
+                    <h3 class="config-title"><i class="ph-fill ph-currency-dollar" style="color: var(--green);"></i> Gestión de Tarifas Base</h3>
+                    
+                    <ul class="config-list" style="margin-bottom: 1.5rem;">
+                        <li>
+                            <div class="item-info">
+                                <strong>Tutelas y Derechos</strong>
+                                <span>Aplica para radicación básica</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="number" value="120000" style="width: 120px; padding: 0.4rem; border: 1px solid var(--gray-300); border-radius: 4px; text-align: right;">
+                                <button class="btn-action" title="Guardar cambios"><i class="ph ph-floppy-disk"></i></button>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-info">
+                                <strong>Autorizaciones Médicas</strong>
+                                <span>Por documento autorizado</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="number" value="35000" style="width: 120px; padding: 0.4rem; border: 1px solid var(--gray-300); border-radius: 4px; text-align: right;">
+                                <button class="btn-action" title="Guardar cambios"><i class="ph ph-floppy-disk"></i></button>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-info">
+                                <strong>Agendamiento de Citas</strong>
+                                <span>Manejo de prioridad estándar</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="number" value="45000" style="width: 120px; padding: 0.4rem; border: 1px solid var(--gray-300); border-radius: 4px; text-align: right;">
+                                <button class="btn-action" title="Guardar cambios"><i class="ph ph-floppy-disk"></i></button>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-info">
+                                <strong>Afiliaciones (Pack Básico)</strong>
+                                <span>Seguridad Social Integral</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="number" value="80000" style="width: 120px; padding: 0.4rem; border: 1px solid var(--gray-300); border-radius: 4px; text-align: right;">
+                                <button class="btn-action" title="Guardar cambios"><i class="ph ph-floppy-disk"></i></button>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <button class="btn btn-primary-outline btn-block btn-save"><i class="ph ph-plus"></i> Añadir Nueva Tarifa</button>
+                </div>
+
+                <!-- Códigos Contables Card -->
+                <div class="config-card">
+                    <h3 class="config-title"><i class="ph-fill ph-books" style="color: var(--blue-main);"></i> Códigos Contables y Sincronizaciones</h3>
+                    
+                    <form class="config-form">
+                        <div class="form-group">
+                            <label for="code-ingresos-tutelas">Cuenta de Ingresos (Tutelas)</label>
+                            <input type="text" id="code-ingresos-tutelas" value="415510 - Asesorías Jurídicas">
+                        </div>
+                        <div class="form-group">
+                            <label for="code-ingresos-citas">Cuenta de Ingresos (Citas Médicas)</label>
+                            <input type="text" id="code-ingresos-citas" value="415520 - Gestión Administrativa">
+                        </div>
+                        <div class="form-group">
+                            <label for="code-gastos">Cuenta de Gastos Operativos</label>
+                            <input type="text" id="code-gastos" value="511010 - Honorarios Profesionales">
+                        </div>
+                        <div class="form-group">
+                            <label for="sync-url">URL Webhook Sincronización (ERP)</label>
+                            <input type="url" id="sync-url" value="https://api.erp-clicksalud.com/v1/sync">
+                        </div>
+                        
+                        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                            <button type="button" class="btn btn-primary btn-save" style="flex: 1;"><i class="ph ph-floppy-disk"></i> Guardar Variables</button>
+                            <button type="button" class="btn btn-secondary btn-save" style="flex: 1;"><i class="ph ph-plugs"></i> Probar Conexión</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
