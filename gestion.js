@@ -43,9 +43,34 @@ async function cargarTickets() {
 
         if (error) throw error;
 
+        // Mapa de retro-compatibilidad para que no desaparezcan tus registros antiguos
+        const equivalenciasAntiguas = {
+            'Asesoría Legal en Salud': ['tutela'],
+            'Gestión de Autorizaciones Médicas': ['autorizacion'],
+            'Agendamiento de Citas Especializadas': ['cita'],
+            'Afiliaciones y Traslados': ['afiliacion'],
+            // 'otro' podría verse por cualquier admin, pero dejémoslo libre si queremos
+        };
+
         // Filtramos por permisos (Dependiendo del rol del usuario en auth.js)
         if(user && user.tramites) {
-            tickets = tickets.filter(ticket => user.tramites.includes(ticket.tipo_tramite));
+            tickets = tickets.filter(ticket => {
+                const tramite = ticket.tipo_tramite;
+                // Si el trámite coincide directamente con los nuevos nombres
+                if (user.tramites.includes(tramite)) return true;
+                
+                // Si el trámite es un texto antiguo ("tutela", "cita"), ver si el usuario tiene permiso para la categoría equivalente
+                for (let permisoNuevo of user.tramites) {
+                    if(equivalenciasAntiguas[permisoNuevo] && equivalenciasAntiguas[permisoNuevo].includes(tramite)) {
+                        return true;
+                    }
+                }
+                
+                // Dejar ver los de "otro" solo si es admin
+                if(tramite === 'otro' && user.modulos.includes('admin')) return true;
+
+                return false;
+            });
         }
 
         // Limpiamos la tabla
