@@ -17,6 +17,9 @@ function formatearFecha(fechaIso) {
     });
 }
 
+// Variables globales para la lógica de filtros
+window.todosLosTickets = [];
+
 // 3. Función principal para extraer los datos de la base de datos
 async function cargarTickets() {
     const user = Auth.requireAuth('gestion');
@@ -73,91 +76,14 @@ async function cargarTickets() {
             });
         }
 
-        // Limpiamos la tabla
-        tbody.innerHTML = '';
+        // Guardamos los tickets obtenidos en la variable global
+        window.todosLosTickets = tickets;
+        
+        // Llenamos el select de trámites de acuerdo a los permisos
+        llenarFiltroTramites(user.tramites);
 
-        // Si no hay datos
-        if (tickets.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="loading-state">
-                        <p>Aún no hay ninguna solicitud registrada.</p>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        const ahora = new Date();
-
-        // Si hay datos, los escribimos en la tabla HTML
-        tickets.forEach(ticket => {
-            // Evaluamos si el cliente subió un archivo o no
-            let documentoHTML = `<span style="color: #94a3b8;">Sin adjunto</span>`;
-            if (ticket.archivo_url) {
-                documentoHTML = `
-                    <a href="${ticket.archivo_url}" target="_blank" class="btn btn-primary-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">
-                        <i class="ph-bold ph-download-simple"></i> Ver PDF
-                    </a>
-                `;
-            }
-
-            // ====== LÓGICA DE SEMÁFORO Y ESTADOS ======
-            // Asignar estado por defecto si no existe (para datos viejos)
-            const estadoActual = ticket.estado || 'Pendiente';
-            
-            // Calcular días transcurridos contando el día actual como 1 (sumando el día de radicación)
-            const fechaTicket = new Date(ticket.created_at);
-            const diffTime = Math.abs(ahora - fechaTicket);
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            
-            // Color del semáforo
-            let colorSemaforo = '#22c55e'; // Verde (1 día)
-            if (diffDays === 2) colorSemaforo = '#eab308'; // Amarillo (2 días)
-            if (diffDays >= 3) colorSemaforo = '#ef4444'; // Rojo (3+ días)
-            
-            // Crear el texto de "X días"
-            let textoTiempo = diffDays === 1 ? '1 día (Hoy)' : `${diffDays} días`;
-
-            // Verificar si debe cambiar TODA la fila a rojo (Pendiente y más de 3 días)
-            let alertClass = '';
-            if (estadoActual === 'Pendiente' && diffDays >= 3) {
-                alertClass = 'row-alert';
-            }
-
-            // HTML del Dropdown de Estado
-            const estadoHTML = `
-                <div style="display: flex; align-items: center;">
-                    <span class="semaforo-dot" style="background-color: ${colorSemaforo};"></span>
-                    <div>
-                        <select class="select-estado" onchange="cambiarEstado(${ticket.id}, this.value)">
-                            <option value="Pendiente" ${estadoActual === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                            <option value="En Gestión" ${estadoActual === 'En Gestión' ? 'selected' : ''}>En Gestión</option>
-                            <option value="Escalado" ${estadoActual === 'Escalado' ? 'selected' : ''}>Escalado</option>
-                            <option value="Gestionado" ${estadoActual === 'Gestionado' ? 'selected' : ''}>Gestionado</option>
-                        </select>
-                        <span class="tiempo-badge">${textoTiempo}</span>
-                    </div>
-                </div>
-            `;
-
-            const tr = document.createElement('tr');
-            if (alertClass) tr.classList.add(alertClass);
-            
-            tr.innerHTML = `
-                <td style="color: #64748b; font-size: 0.85rem;">${formatearFecha(ticket.created_at)}</td>
-                <td class="td-name">${ticket.nombre_completo}</td>
-                <td>
-                    <a href="https://wa.me/57${ticket.telefono.replace(/\s+/g, '')}" target="_blank" style="color: var(--green); display: flex; align-items: center; gap: 0.3rem; font-weight: 500;">
-                        <i class="ph-fill ph-whatsapp-logo"></i> ${ticket.telefono}
-                    </a>
-                </td>
-                <td><span class="badge-type">${ticket.tipo_tramite}</span></td>
-                <td>${estadoHTML}</td>
-                <td>${documentoHTML}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+        // Disparamos la función que finalmente dibuja
+        aplicarFiltrosLocales();
 
     } catch (error) {
         console.error("Error cargando los tickets:", error);
@@ -169,26 +95,174 @@ async function cargarTickets() {
                 </td>
             </tr>
         `;
-    }
+        }
 }
 
-// 4. Función para actualizar el estado en la base de datos
+// 4. Función encargada de dibujar la tabla dado un arreglo de tickets
+function renderTabla(lista) {
+    const tbody = document.getElementById('ticketsTabla');
+    tbody.innerHTML = '';
+
+    if (lista.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="loading-state">
+                    <p>No se encontraron resultados o registros.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const ahora = new Date();
+
+    lista.forEach(ticket => {
+        let documentoHTML = `<span style="color: #94a3b8;">Sin adjunto</span>`;
+        if (ticket.archivo_url) {
+            documentoHTML = `
+                <a href="${ticket.archivo_url}" target="_blank" class="btn btn-primary-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">
+                    <i class="ph-bold ph-download-simple"></i> Ver PDF
+                </a>
+            `;
+        }
+
+        const estadoActual = ticket.estado || 'Pendiente';
+        const fechaTicket = new Date(ticket.created_at);
+        const diffTime = Math.abs(ahora - fechaTicket);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        let colorSemaforo = '#22c55e';
+        if (diffDays === 2) colorSemaforo = '#eab308';
+        if (diffDays >= 3) colorSemaforo = '#ef4444';
+        
+        let textoTiempo = diffDays === 1 ? '1 día (Hoy)' : `${diffDays} días`;
+
+        let alertClass = '';
+        if (estadoActual === 'Pendiente' && diffDays >= 3) {
+            alertClass = 'row-alert';
+        }
+
+        const estadoHTML = `
+            <div style="display: flex; align-items: center;">
+                <span class="semaforo-dot" style="background-color: ${colorSemaforo};"></span>
+                <div>
+                    <select class="select-estado" onchange="cambiarEstado('${ticket.id}', this.value)">
+                        <option value="Pendiente" ${estadoActual === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="En Gestión" ${estadoActual === 'En Gestión' ? 'selected' : ''}>En Gestión</option>
+                        <option value="Escalado" ${estadoActual === 'Escalado' ? 'selected' : ''}>Escalado</option>
+                        <option value="Gestionado" ${estadoActual === 'Gestionado' ? 'selected' : ''}>Gestionado</option>
+                        <option value="Rechazado" ${estadoActual === 'Rechazado' ? 'selected' : ''}>Rechazado</option>
+                    </select>
+                    <span class="tiempo-badge">${textoTiempo}</span>
+                </div>
+            </div>
+        `;
+
+        const tr = document.createElement('tr');
+        if (alertClass) tr.classList.add(alertClass);
+        
+        tr.innerHTML = `
+            <td style="color: #64748b; font-size: 0.85rem;">${formatearFecha(ticket.created_at)}</td>
+            <td class="td-name">${ticket.nombre_completo}</td>
+            <td>
+                <a href="https://wa.me/57${ticket.telefono.replace(/\s+/g, '')}" target="_blank" style="color: var(--green); display: flex; align-items: center; gap: 0.3rem; font-weight: 500;">
+                    <i class="ph-fill ph-whatsapp-logo"></i> ${ticket.telefono}
+                </a>
+            </td>
+            <td><span class="badge-type">${ticket.tipo_tramite}</span></td>
+            <td>${estadoHTML}</td>
+            <td>${documentoHTML}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// 5. Función para actualizar el estado
 async function cambiarEstado(ticketId, nuevoEstado) {
     try {
         const { error } = await supabaseClient
             .from('clientes')
             .update({ estado: nuevoEstado })
             .eq('id', ticketId);
-            
+
         if (error) throw error;
         
-        // Recargar la tabla para aplicar el cambio visual instantáneamente
-        cargarTickets();
+        // Actualizamos localmente para no tener que recargar todo
+        const elTicket = window.todosLosTickets.find(t => String(t.id) === String(ticketId));
+        if (elTicket) elTicket.estado = nuevoEstado;
+        
+        // Refrescamos vista
+        aplicarFiltrosLocales();
         
     } catch (error) {
-        alert("Hubo un error al actualizar el estado: " + error.message);
+        console.error('Error actualizando estado:', error);
+        alert('Hubo un error al cambiar el estado. Intenta de nuevo.');
+        cargarTickets();
     }
 }
 
-// 5. Ejecutar la función apenas se abra la página
+// 6. Funcionalidades de Filtros
+function llenarFiltroTramites(tramitesAutorizados) {
+    const selector = document.getElementById('filterTramite');
+    if(!selector) return;
+    
+    // Dejar la opcion "Todos"
+    selector.innerHTML = '<option value="todos">Todos los trámites</option>';
+    
+    if(tramitesAutorizados) {
+        tramitesAutorizados.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            selector.appendChild(opt);
+        });
+    }
+}
+
+function aplicarFiltrosLocales() {
+    let listData = window.todosLosTickets;
+    
+    // Obtener valores de los inputs
+    const textSearch = (document.getElementById('filterSearch')?.value || '').toLowerCase();
+    const tramiteSelect = document.getElementById('filterTramite')?.value || 'todos';
+    const estadoSelect = document.getElementById('filterEstado')?.value || 'todos';
+
+    // Aplicar Filtro 1: Buscador Libre (Nombre o teléfono)
+    if(textSearch) {
+        listData = listData.filter(t => 
+            (t.nombre_completo && t.nombre_completo.toLowerCase().includes(textSearch)) ||
+            (t.telefono && t.telefono.includes(textSearch))
+        );
+    }
+    
+    // Aplicar Filtro 2: Trámite
+    if(tramiteSelect !== 'todos') {
+        listData = listData.filter(t => t.tipo_tramite === tramiteSelect);
+    }
+    
+    // Aplicar Filtro 3: Estado
+    /* Los estados en el select son: pendiente, en_gestion, etc (algunos con mayusculas). 
+       Vamos a comparar unicamente asumiendo los string literales que asignamos al select o ignorando cases. */
+    if(estadoSelect !== 'todos') {
+        // En el HTML, los option tienen values: recibido, revision, aprobado, pendiente_documento, rechazado.
+        // Pero en la base de datos se guardan como en el select-estado literal ('Pendiente', 'En Gestión').
+        // Ah, he visto que el HTML decia recibido/revision pero mi select estado usa Pendiente / En Gestión.
+        // Convertiré ambos a minusculas y buscaré substring para mayor robustez
+        listData = listData.filter(t => {
+            const tEstado = (t.estado || 'Pendiente').toLowerCase();
+            return tEstado.includes(estadoSelect.substring(0,4)); // e.g., 'pend', 'en g', etc.
+        });
+    }
+
+    renderTabla(listData);
+}
+
+function limpiarFiltros() {
+    document.getElementById('filterSearch').value = '';
+    document.getElementById('filterTramite').value = 'todos';
+    document.getElementById('filterEstado').value = 'todos';
+    aplicarFiltrosLocales();
+}
+
+// Iniciar
 document.addEventListener('DOMContentLoaded', cargarTickets);

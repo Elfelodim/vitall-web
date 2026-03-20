@@ -158,7 +158,40 @@
     <main class="admin-dashboard">
         <div class="container">
             <h2 class="section-title text-left" style="margin-bottom: 0.5rem;">Gestión de Solicitudes</h2>
-            <p class="text-gray-500" style="margin-bottom: 2rem;">Aquí puedes ver toda la información enviada por los clientes desde la web. Cambia el estado para llevar un control.</p>
+            <p class="text-gray-500" style="margin-bottom: 1.5rem;">Aquí puedes ver toda la información enviada por los clientes desde la web. Cambia el estado para llevar un control.</p>
+
+            <!-- Barra de Filtros -->
+            <div style="background: white; padding: 1rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; border: 1px solid var(--gray-200);">
+                <div style="flex: 1; min-width: 200px; display: flex; align-items: center; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 0.5rem;">
+                    <i class="ph ph-magnifying-glass" style="color: var(--gray-500); margin-right: 0.5rem;"></i>
+                    <input type="text" id="filterSearch" placeholder="Buscar por paciente o teléfono..." style="border: none; background: transparent; width: 100%; outline: none; font-size: 0.9rem;">
+                </div>
+                
+                <div style="min-width: 150px;">
+                    <select id="filterTramite" style="width: 100%; border: 1px solid var(--gray-200); padding: 0.5rem; border-radius: var(--radius-md); font-size: 0.9rem; outline: none; background: white;">
+                        <option value="todos">Todos los trámites</option>
+                        <!-- Se llenará dinámicamente con JS según permisos -->
+                    </select>
+                </div>
+
+                <div style="min-width: 150px;">
+                    <select id="filterEstado" style="width: 100%; border: 1px solid var(--gray-200); padding: 0.5rem; border-radius: var(--radius-md); font-size: 0.9rem; outline: none; background: white;">
+                        <option value="todos">Cualquier estado</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en gestión">En Gestión</option>
+                        <option value="escalado">Escalado</option>
+                        <option value="gestionado">Gestionado</option>
+                        <option value="rechazado">Rechazado</option>
+                    </select>
+                </div>
+                
+                <button onclick="aplicarFiltrosLocales()" class="btn btn-primary btn-sm" style="display: flex; gap: 0.3rem; align-items: center;">
+                    <i class="ph ph-funnel"></i> Filtrar
+                </button>
+                <button onclick="limpiarFiltros()" class="btn btn-primary-outline btn-sm" style="display: flex; gap: 0.3rem; align-items: center; border-color: var(--gray-300); color: var(--gray-700);">
+                    Limpiar
+                </button>
+            </div>
 
             <div class="table-container">
                 <table>
