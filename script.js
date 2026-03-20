@@ -43,8 +43,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    // 3.1 Data Protection Acceptance Logic
+    const acceptDataCheck = document.getElementById('acceptDataCheck');
+    const acceptDataLabel = document.getElementById('acceptDataLabel');
+    const formFieldsWrapper = document.getElementById('formFieldsWrapper');
+    const dataProtectionSection = document.getElementById('dataProtectionSection');
 
-    // 3. File Upload UI Interaction
+    if (acceptDataCheck && formFieldsWrapper) {
+        acceptDataCheck.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                acceptDataLabel.style.borderColor = 'var(--green)';
+                acceptDataLabel.style.backgroundColor = 'var(--green-light)';
+                
+                formFieldsWrapper.style.display = 'block';
+                // Trigger reflow
+                void formFieldsWrapper.offsetWidth; 
+                formFieldsWrapper.style.opacity = '1';
+                formFieldsWrapper.style.marginTop = '1rem';
+                
+                // Optional: visually minimize the DP section slightly
+                dataProtectionSection.style.opacity = '0.9';
+            } else {
+                acceptDataLabel.style.borderColor = 'var(--gray-200)';
+                acceptDataLabel.style.backgroundColor = 'white';
+                
+                formFieldsWrapper.style.opacity = '0';
+                setTimeout(() => {
+                    formFieldsWrapper.style.display = 'none';
+                }, 400); // Wait for transition
+            }
+        });
+    }
+
+    // 3.2 File Upload UI Interaction
     const fileUpload = document.getElementById('fileUpload');
     const fileDropArea = document.getElementById('fileDropArea');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
