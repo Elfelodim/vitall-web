@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fullName = document.getElementById('fullName').value;
                 const phone = document.getElementById('phone').value;
                 const serviceType = document.getElementById('serviceType').value;
+                const observations = document.getElementById('observations').value || 'Ninguna';
                 
                 let fileUrl = null;
                 const fileInput = document.getElementById('fileUpload');
@@ -160,11 +161,36 @@ document.addEventListener('DOMContentLoaded', () => {
                             nombre_completo: fullName, 
                             telefono: phone, 
                             tipo_tramite: serviceType,
-                            archivo_url: fileUrl
+                            archivo_url: fileUrl,
+                            observaciones: observations
                         }
                     ]);
 
                 if (insertError) throw insertError;
+
+                // Enviar notificación por correo con FormSubmit
+                submitBtn.textContent = 'Enviando email de confirmación...';
+                try {
+                    await fetch('https://formsubmit.co/ajax/clicksaludcol@gmail.com', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            "Asunto": "Nueva Solicitud Web - ClickSalud",
+                            "Nombre del Paciente": fullName,
+                            "Teléfono de Contacto": phone,
+                            "Tipo de Trámite": serviceType,
+                            "Observaciones": observations,
+                            "Enlace al Documento": fileUrl ? fileUrl : "El usuario no adjuntó archivo",
+                            "_template": "table",
+                            "_subject": `Nuevo trámite web de ${fullName}`
+                        })
+                    });
+                } catch (e) {
+                    console.error("El registro se procesó, pero el correo no pudo ser enviado: ", e);
+                }
 
                 alert('¡Solicitud enviada con éxito! Un asesor de ClickSalud se pondrá en contacto pronto.');
                 uploadForm.reset();
