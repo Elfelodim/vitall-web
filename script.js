@@ -1,5 +1,25 @@
 // script.js
 
+// ==========================================
+// REGISTRO DE VISITAS A LA LANDING PAGE
+// ==========================================
+document.addEventListener('DOMContentLoaded', async () => {
+    // Solo contar 1 visita por sesión del navegador
+    if(!sessionStorage.getItem('visited_clicksalud_hoy') && window.supabaseClient) {
+        sessionStorage.setItem('visited_clicksalud_hoy', '1');
+        try {
+            // Obtener contador actual
+            const { data: stats } = await window.supabaseClient.from('estadisticas').select('contador').eq('id', 1).single();
+            if(stats) {
+                // Sumar 1
+                await window.supabaseClient.from('estadisticas').update({contador: stats.contador + 1}).eq('id', 1);
+            }
+        } catch(e) {
+            console.log("No se pudo registrar la visita. Asegúrate de haber ejecutado el SQL de la tabla 'estadisticas'.");
+        }
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Sticky Navbar styling on scroll
     const navbar = document.getElementById('navbar');

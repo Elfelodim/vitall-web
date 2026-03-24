@@ -157,7 +157,13 @@
 
     <main class="admin-dashboard">
         <div class="container">
-            <h2 class="section-title text-left" style="margin-bottom: 0.5rem;">Gestión de Solicitudes</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 1rem;">
+                <h2 class="section-title text-left" style="margin-bottom: 0;">Gestión de Solicitudes</h2>
+                <div style="background: var(--blue-main); color: white; padding: 0.4rem 1rem; border-radius: 999px; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <i class="ph-bold ph-users text-white"></i> 
+                    <span id="contadorVisitasTotal"><i class="ph ph-spinner ph-spin"></i></span> Visitas en la Web
+                </div>
+            </div>
             <p class="text-gray-500" style="margin-bottom: 1.5rem;">Aquí puedes ver toda la información enviada por los clientes desde la web. Cambia el estado para llevar un control.</p>
 
             <!-- Barra de Filtros -->

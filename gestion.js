@@ -38,13 +38,31 @@ async function cargarTickets() {
     `;
 
     try {
-        // Pedimos todos los registros de la tabla "clientes", ordenados del más reciente al más antiguo
-        let { data: tickets, error } = await supabaseClient
+        // Pedimos todos los registros al mismo tiempo que pedimos las estadísticas
+        const fetchTickets = supabaseClient
             .from('clientes')
             .select('*')
             .order('created_at', { ascending: false });
+        
+        const fetchStats = supabaseClient
+            .from('estadisticas')
+            .select('contador')
+            .eq('id', 1)
+            .single();
 
-        if (error) throw error;
+        const [ticketsResponse, statsResponse] = await Promise.all([fetchTickets, fetchStats]);
+
+        if (ticketsResponse.error) throw ticketsResponse.error;
+        
+        let tickets = ticketsResponse.data;
+
+        // Actualizar UI Contador Visitas
+        const contadorSpan = document.getElementById('contadorVisitasTotal');
+        if(contadorSpan && statsResponse.data) {
+            contadorSpan.textContent = statsResponse.data.contador;
+        } else if (contadorSpan) {
+            contadorSpan.textContent = '0';
+        }
 
         // Mapa de retro-compatibilidad para que no desaparezcan tus registros antiguos
         const equivalenciasAntiguas = {
