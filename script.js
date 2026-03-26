@@ -12,16 +12,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Solo contar 1 visita por sesión del navegador
     if(!sessionStorage.getItem('visited_clicksalud_hoy')) {
-        sessionStorage.setItem('visited_clicksalud_hoy', '1');
         try {
             // Obtener contador actual
-            const { data: stats } = await supabase.from('estadisticas').select('contador').eq('id', 1).single();
+            const { data: stats, error: selectErr } = await supabase.from('estadisticas').select('contador').eq('id', 1).single();
+            
+            if(selectErr) throw selectErr;
+
             if(stats) {
                 // Sumar 1
-                await supabase.from('estadisticas').update({contador: stats.contador + 1}).eq('id', 1);
+                const { error: updErr } = await supabase.from('estadisticas').update({contador: stats.contador + 1}).eq('id', 1);
+                if (updErr) throw updErr;
+                
+                // Solo marcar como visitado si logró sumar en DB
+                sessionStorage.setItem('visited_clicksalud_hoy', '1');
             }
         } catch(e) {
-            console.log("No se pudo registrar la visita. Asegúrate de haber ejecutado el SQL de la tabla 'estadisticas'.");
+            console.error("⛔ Supabase bloqueó el conteo de tu visita (Probablemente por RLS):", e);
         }
     }
 });
