@@ -229,8 +229,27 @@
 
     <main class="dashboard-container">
         <div class="container">
-            <h2 class="section-title text-left" style="margin-bottom: 0.5rem;">Resumen Estadístico Operativo</h2>
-            <p class="text-gray-500" style="margin-bottom: 2rem;">Indicadores y volumen de trámites extraídos en tiempo real de la gestión general.</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; margin-bottom: 2rem; gap: 1rem;">
+                <div>
+                    <h2 class="section-title text-left" style="margin-bottom: 0.5rem;">Resumen Estadístico Operativo</h2>
+                    <p class="text-gray-500" style="margin-bottom: 0;">Indicadores y volumen de trámites extraídos en tiempo real de la gestión general.</p>
+                </div>
+                <!-- Barra de Filtros -->
+                <div style="display: flex; gap: 1rem; align-items: flex-end; background: white; padding: 1rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200);">
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--gray-500); font-weight: 600; display: block; margin-bottom: 0.3rem;">Desde (Solicitud)</label>
+                        <input type="date" id="filterDesde" style="border: 1px solid var(--gray-200); padding: 0.4rem; border-radius: var(--radius-sm); font-size: 0.85rem; outline: none;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--gray-500); font-weight: 600; display: block; margin-bottom: 0.3rem;">Hasta (Solicitud)</label>
+                        <input type="date" id="filterHasta" style="border: 1px solid var(--gray-200); padding: 0.4rem; border-radius: var(--radius-sm); font-size: 0.85rem; outline: none;">
+                    </div>
+                    <div>
+                        <button id="btnFiltrarTablero" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Aplicar <i class="ph-bold ph-funnel"></i></button>
+                        <button id="btnLimpiarTablero" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Limpiar</button>
+                    </div>
+                </div>
+            </div>
 
             <!-- KPI Cards Dinámicos -->
             <div class="kpi-grid" id="kpiContainer">
@@ -240,7 +259,7 @@
                         <i class="ph ph-file-text kpi-icon"></i>
                     </div>
                     <div class="kpi-value" id="kpiTotal">...</div>
-                    <div class="kpi-trend trend-up"><i class="ph-bold ph-clock"></i> <span id="kpiTotalLabel">Desde siempre</span></div>
+                    <div class="kpi-trend trend-up"><i class="ph-bold ph-clock"></i> <span id="kpiTotalLabel">En el periodo seleccionado</span></div>
                 </div>
 
                 <div class="kpi-card">
@@ -272,7 +291,7 @@
                         <i class="ph ph-spinner ph-spin text-gray-400" style="font-size: 2rem; margin: auto;"></i>
                     </div>
                     <div style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--gray-500);">
-                        Distribución de casos por categoría.
+                        Distribución de casos por categoría y su porcentaje del total.
                     </div>
                 </div>
 
@@ -292,112 +311,146 @@
 
     <script src="auth.js"></script>
     <script>
-        // Restricción de acceso para el módulo 'admin'
+        // Restricción de acceso
         const currentUser = Auth.requireAuth('admin');
 
         document.addEventListener('DOMContentLoaded', async () => {
             const client = Auth.getClient();
+            window.todosLosTicketsDashboard = [];
 
             try {
                 // Fetch all tickets to calculate KPIs
-                // Nota: Para grandes volúmenes de datos se recomienda usar RPCs o count() de Supabase
+                // Se extraen todos con '*' por si existe updated_at y para tener fechas correctas
                 const { data: tickets, error } = await client
                     .from('clientes')
-                    .select('estado, tipo_tramite, created_at, nombre_completo, id')
+                    .select('*')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-
-                // kPI Calculations
-                const total = tickets.length;
-                let abiertos = 0;
-                let cerrados = 0;
                 
-                const contadoresTramites = {};
-
-                tickets.forEach(t => {
-                    const est = t.estado || 'Pendiente';
-                    if (est === 'Gestionado' || est === 'Rechazado') {
-                        cerrados++;
-                    } else {
-                        abiertos++;
-                    }
-
-                    // Frecuencia de categorías
-                    const cat = t.tipo_tramite || 'Otros';
-                    contadoresTramites[cat] = (contadoresTramites[cat] || 0) + 1;
-                });
-
-                document.getElementById('kpiTotal').textContent = total;
-                document.getElementById('kpiAbiertos').textContent = abiertos;
-                document.getElementById('kpiCerrados').textContent = cerrados;
-
-                // Render Chart
-                const chartContainer = document.getElementById('barChartContainer');
-                chartContainer.innerHTML = '';
-                
-                // Ordenar por valor
-                const entradasSorted = Object.entries(contadoresTramites).sort((a,b) => b[1] - a[1]).slice(0, 5); // top 5
-                
-                if(entradasSorted.length === 0) {
-                    chartContainer.innerHTML = '<span class="text-gray-500">No hay datos</span>';
-                } else {
-                    const maxVal = entradasSorted[0][1];
-                    entradasSorted.forEach(([cat, val]) => {
-                        const height = Math.max((val / maxVal) * 100, 15);
-                        let abreviado = cat.substring(0, 5);
-                        if(cat.includes('Polizas')) abreviado = 'Póliz';
-                        if(cat.includes('Afiliaciones')) abreviado = 'Afil';
-                        if(cat.includes('Agendamiento')) abreviado = 'Citas';
-                        if(cat.includes('Autorizaciones')) abreviado = 'Autor';
-                        if(cat.includes('Reclam')) abreviado = 'Medic';
-                        if(cat.includes('Legal')) abreviado = 'Legal';
-
-                        chartContainer.innerHTML += `
-                            <div class="chart-bar" style="height: ${height}%; position: relative;" title="${cat}: ${val}">
-                                <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 0.9rem; color: var(--blue-dark);">${val}</div>
-                                <span title="${cat}">${abreviado}</span>
-                            </div>
-                        `;
-                    });
-                }
-
-                // Render List
-                const listContainer = document.getElementById('ultimosMovimientos');
-                listContainer.innerHTML = '';
-                
-                const recents = tickets.slice(0, 5);
-                if (recents.length === 0) {
-                    listContainer.innerHTML = '<li class="text-gray-500">No hay registros recientes</li>';
-                }
-
-                recents.forEach(t => {
-                    const dateObj = new Date(t.created_at);
-                    const isToday = new Date().toDateString() === dateObj.toDateString();
-                    const dateStr = isToday ? dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : dateObj.toLocaleDateString();
-                    
-                    let estadoColor = 'var(--gray-500)';
-                    const est = t.estado || 'Pendiente';
-                    if(est === 'Pendiente') estadoColor = '#eab308';
-                    if(est === 'Gestionado') estadoColor = '#22c55e';
-                    if(est === 'Rechazado') estadoColor = '#ef4444';
-
-                    listContainer.innerHTML += `
-                        <li>
-                            <div class="item-info">
-                                <strong>${t.tipo_tramite || 'Trámite Web'} - ${t.nombre_completo}</strong>
-                                <span>Llegó: ${dateStr}</span>
-                            </div>
-                            <span style="color: ${estadoColor}; font-weight: 600; font-size: 0.85rem;">${est}</span>
-                        </li>
-                    `;
-                });
+                window.todosLosTicketsDashboard = tickets;
+                renderDashboard(tickets);
 
             } catch (err) {
                 console.error("Error cargando el dashboard:", err);
                 document.getElementById('kpiContainer').innerHTML = `<p class="text-gray-500">Error conectando a la base de datos.</p>`;
             }
+
+            // Listeners de los filtros
+            document.getElementById('btnFiltrarTablero').addEventListener('click', () => {
+                const desde = document.getElementById('filterDesde').value;
+                const hasta = document.getElementById('filterHasta').value;
+                
+                let filtrados = window.todosLosTicketsDashboard;
+
+                if (desde) {
+                    const desdeDate = new Date(desde + "T00:00:00");
+                    filtrados = filtrados.filter(t => new Date(t.created_at) >= desdeDate);
+                }
+                if (hasta) {
+                    const hastaDate = new Date(hasta + "T23:59:59");
+                    filtrados = filtrados.filter(t => new Date(t.created_at) <= hastaDate);
+                }
+
+                renderDashboard(filtrados);
+            });
+
+            document.getElementById('btnLimpiarTablero').addEventListener('click', () => {
+                document.getElementById('filterDesde').value = '';
+                document.getElementById('filterHasta').value = '';
+                renderDashboard(window.todosLosTicketsDashboard);
+            });
         });
+
+        function renderDashboard(tickets) {
+            // KPI Calculations
+            const total = tickets.length;
+            let abiertos = 0;
+            let cerrados = 0;
+            
+            const contadoresTramites = {};
+
+            tickets.forEach(t => {
+                const est = t.estado || 'Pendiente';
+                if (est === 'Gestionado' || est === 'Rechazado') {
+                    cerrados++;
+                } else {
+                    abiertos++;
+                }
+
+                const cat = t.tipo_tramite || 'Otros';
+                contadoresTramites[cat] = (contadoresTramites[cat] || 0) + 1;
+            });
+
+            document.getElementById('kpiTotal').textContent = total;
+            document.getElementById('kpiAbiertos').textContent = abiertos;
+            document.getElementById('kpiCerrados').textContent = cerrados;
+
+            // Render Chart
+            const chartContainer = document.getElementById('barChartContainer');
+            chartContainer.innerHTML = '';
+            
+            const entradasSorted = Object.entries(contadoresTramites).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            
+            if(entradasSorted.length === 0) {
+                chartContainer.innerHTML = '<span class="text-gray-500">No hay datos en esta fecha</span>';
+            } else {
+                const maxVal = entradasSorted[0][1];
+                entradasSorted.forEach(([cat, val]) => {
+                    const height = Math.max((val / maxVal) * 100, 15);
+                    const percent = total > 0 ? Math.round((val / total) * 100) : 0;
+                    
+                    let abreviado = cat.substring(0, 5);
+                    if(cat.includes('Polizas')) abreviado = 'Póliz';
+                    if(cat.includes('Afiliaciones')) abreviado = 'Afil';
+                    if(cat.includes('Agendamiento')) abreviado = 'Citas';
+                    if(cat.includes('Autorizaciones')) abreviado = 'Autor';
+                    if(cat.includes('Reclam')) abreviado = 'Medic';
+                    if(cat.includes('Legal')) abreviado = 'Legal';
+
+                    chartContainer.innerHTML += `
+                        <div class="chart-bar" style="height: ${height}%; position: relative;" title="${cat}: ${val} casos (${percent}%)">
+                            <div style="position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 0.9rem; color: var(--blue-dark); text-align: center; display: flex; flex-direction: column;">
+                                <span>${val}</span>
+                                <span style="font-size: 0.65rem; color: var(--gray-500); font-weight: normal;">${percent}%</span>
+                            </div>
+                            <span title="${cat}">${abreviado}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // Render List
+            const listContainer = document.getElementById('ultimosMovimientos');
+            listContainer.innerHTML = '';
+            
+            const recents = tickets.slice(0, 5);
+            if (recents.length === 0) {
+                listContainer.innerHTML = '<li class="text-gray-500">No hay registros recientes</li>';
+            }
+
+            recents.forEach(t => {
+                const dateObj = new Date(t.created_at);
+                const isToday = new Date().toDateString() === dateObj.toDateString();
+                const dateStr = isToday ? dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : dateObj.toLocaleDateString();
+                
+                let estadoColor = 'var(--gray-500)';
+                const est = t.estado || 'Pendiente';
+                if(est === 'Pendiente') estadoColor = '#eab308';
+                if(est === 'Gestionado') estadoColor = '#22c55e';
+                if(est === 'Rechazado') estadoColor = '#ef4444';
+
+                listContainer.innerHTML += `
+                    <li>
+                        <div class="item-info">
+                            <strong>${t.tipo_tramite || 'Trámite Web'} - ${t.nombre_completo}</strong>
+                            <span>Ingresó: ${dateStr}</span>
+                        </div>
+                        <span style="color: ${estadoColor}; font-weight: 600; font-size: 0.85rem;">${est}</span>
+                    </li>
+                `;
+            });
+        }
     </script>
 </body>
 </html>
