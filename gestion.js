@@ -295,6 +295,7 @@ function aplicarFiltrosLocales() {
         });
     }
 
+    window.ticketsFiltrados = listData;
     renderTabla(listData);
 }
 
@@ -303,6 +304,42 @@ function limpiarFiltros() {
     document.getElementById('filterTramite').value = 'todos';
     document.getElementById('filterEstado').value = 'todos';
     aplicarFiltrosLocales();
+}
+
+function descargarExcel() {
+    const data = window.ticketsFiltrados || window.todosLosTickets;
+    if (!data || data.length === 0) {
+        alert("No hay datos para exportar.");
+        return;
+    }
+
+    // Cabeceras
+    const headers = ['Fecha de Solicitud', 'Paciente', 'Teléfono', 'Trámite', 'Estado', 'Observaciones'];
+    
+    // Crear el contenido CSV
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM para acentos en Excel
+    csvContent += headers.join(';') + '\r\n'; // Delimitador punto y coma
+
+    data.forEach(t => {
+        const fecha = formatearFecha(t.created_at).replace(/;/g, ',');
+        const nombre = (t.nombre_completo || '').replace(/;/g, ',').replace(/\n/g, ' ');
+        const telefono = (t.telefono || '').replace(/;/g, ',').replace(/\n/g, ' ');
+        const tramite = (t.tipo_tramite || '').replace(/;/g, ',').replace(/\n/g, ' ');
+        const estado = (t.estado || 'Pendiente').replace(/;/g, ',').replace(/\n/g, ' ');
+        const obs = (t.observaciones || '').replace(/;/g, ',').replace(/\n/g, ' ');
+
+        const row = [fecha, nombre, telefono, tramite, estado, obs];
+        csvContent += row.join(';') + '\r\n';
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    const fechaDescarga = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `Consolidado_Tickets_${fechaDescarga}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // Iniciar
