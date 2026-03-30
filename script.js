@@ -187,8 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Collect values
                 const fullName = document.getElementById('fullName').value;
                 const phone = document.getElementById('phone').value;
+                const emailAddress = document.getElementById('emailInput').value;
                 const serviceType = document.getElementById('serviceType').value;
                 const observations = document.getElementById('observations').value || 'Ninguna';
+                
+                const dbObservations = `(Correo: ${emailAddress}) - ${observations}`;
                 
                 let fileUrls = [];
                 const fileInput = document.getElementById('fileUpload');
@@ -232,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             telefono: phone, 
                             tipo_tramite: serviceType,
                             archivo_url: finalFileUrl,
-                            observaciones: observations,
+                            observaciones: dbObservations,
                             consentimiento_datos: true
                         }
                     ]);
@@ -252,9 +255,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             "Asunto": "Nueva Solicitud Web - ClickSalud",
                             "Nombre del Paciente": fullName,
                             "Teléfono de Contacto": phone,
+                            "Correo Electrónico": emailAddress,
                             "Tipo de Trámite": serviceType,
                             "Observaciones": observations,
-                            "Enlace al Documento": fileUrl ? fileUrl : "El usuario no adjuntó archivo",
+                            "Enlace al Documento": finalFileUrl ? finalFileUrl : "El usuario no adjuntó archivo",
+                            "email": emailAddress,
+                            "_autoresponse": `Hola, ${fullName}:
+
+Es un gusto saludarte. En Click-Salud Asesorías, sabemos que navegar el sistema de salud en Colombia puede ser un camino difícil y frustrante. Por eso, nos alegra que hayas dado el primer paso para dejar tus trámites administrativos en manos expertas.
+
+Desde este momento, nuestro equipo de JAC Asesorías Integrales S.A.S. se pone a tu disposición para orientarte y gestionar tus solicitudes (PQRD, Tutelas, afiliaciones, recursos o documentos legales, entre otros) con la mayor diligencia técnica.
+
+🔍 ¿Qué sigue ahora?
+Revisión de documentos: En breve, un asesor analizará la información que nos compartiste.
+
+Estrategia personalizada: Te contactaremos para explicarte la ruta administrativa o legal que seguiremos.
+
+Gestión activa: Realizaremos la redacción y radicación de los documentos necesarios para proteger tus derechos.
+
+Atentamente,
+El equipo de Click-Salud`,
                             "_template": "table",
                             "_subject": `Nuevo trámite web de ${fullName}`
                         })
