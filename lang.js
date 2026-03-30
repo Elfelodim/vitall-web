@@ -58,7 +58,7 @@ const translations = {
         "form.dp.card1.desc": "Controles de seguridad activos.",
         "form.dp.card2.title": "Finalidad",
         "form.dp.card2.desc": "Uso exclusivo para este trámite.",
-        "form.dp.check": "Acepto los términos y autorizo el tratamiento de mis datos personales para continuar.",
+        "form.dp.check": "Acepto los <a href=\"#\" onclick=\"document.getElementById('termsModal').style.display='flex'; return false;\" style=\"text-decoration: underline; color: var(--blue-main);\">términos y condiciones</a> y autorizo el tratamiento de mis datos personales para continuar.",
         
         "form.title": "Gestión Rápida",
         "form.label.name": "Nombre Completo del Paciente",
@@ -147,7 +147,7 @@ const translations = {
         "form.dp.card1.desc": "Active security controls.",
         "form.dp.card2.title": "Purpose",
         "form.dp.card2.desc": "Exclusive use for this procedure.",
-        "form.dp.check": "I accept the terms and authorize the processing of my personal data to continue.",
+        "form.dp.check": "I accept the <a href=\"#\" onclick=\"document.getElementById('termsModal').style.display='flex'; return false;\" style=\"text-decoration: underline; color: var(--blue-main);\">terms and conditions</a> and authorize the processing of my personal data.",
         
         "form.title": "Fast Management",
         "form.label.name": "Patient's Full Name",
