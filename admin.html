@@ -407,6 +407,7 @@
                     if(cat.includes('Autorizaciones')) abreviado = 'Autor';
                     if(cat.includes('Reclam')) abreviado = 'Medic';
                     if(cat.includes('Legal')) abreviado = 'Legal';
+                    if(cat.includes('Internacional')) abreviado = 'Inter';
 
                     chartContainer.innerHTML += `
                         <div class="chart-bar" style="height: ${height}%; position: relative;" title="${cat}: ${val} casos (${percent}%)">

@@ -29,6 +29,8 @@ const translations = {
         "srv.5.desc": "Gestionamos los trámites necesarios para la entrega de tus medicamentos (incluso los de alto costo o uso continuo), ahorrándote filas y dolores de cabeza.",
         "srv.6.title": "Asesoría Legal <span style='font-size: 0.95rem; font-weight: 500; display: block; margin-top: 0.2rem; color: var(--gray-500);'>(Tutelas y Peticiones)</span>",
         "srv.6.desc": "Redactamos y radicamos los recursos legales necesarios (como Derechos de Petición o Acciones de Tutela) para exigir y proteger tu derecho a la salud de forma oportuna.",
+        "srv.7.title": "Asesoría a Paciente Internacional",
+        "srv.7.desc": "Brindamos asesoría y acompañamiento para pacientes que viajan desde el exterior. Te ayudamos con la coordinación de citas médicas y procedimientos desde la parte administrativa.",
         
         "sec.about.badge": "Quiénes Somos",
         "sec.about.title": "Comprometidos con tu bienestar integral",
@@ -71,6 +73,7 @@ const translations = {
         "form.opt.medicamento": "Reclamación de Medicamentos",
         "form.opt.afiliacion": "Afiliaciones y Traslados",
         "form.opt.poliza": "Pólizas y Planes Prepagados",
+        "form.opt.internacional": "Asesoría a Paciente Internacional",
         "form.opt.otro": "Otro trámite",
         "form.label.desc": "¿Qué necesitas gestionar? (Breve explicación)",
         "form.plc.desc": "Describe brevemente tu necesidad para que nuestro equipo lo revise...",
@@ -112,6 +115,8 @@ const translations = {
         "srv.5.desc": "We handle the necessary paperwork for the delivery of your medications (even high-cost or continuous use ones), saving you lines and headaches.",
         "srv.6.title": "Legal Counseling <span style='font-size: 0.95rem; font-weight: 500; display: block; margin-top: 0.2rem; color: var(--gray-500);'>(Petitions and Actions)</span>",
         "srv.6.desc": "We draft and file the necessary legal resources to demand and protect your right to health in a timely manner.",
+        "srv.7.title": "International Patient Counseling",
+        "srv.7.desc": "We provide counseling and support for patients traveling from abroad. We help you coordinate medical appointments and procedures from the administrative side.",
         
         "sec.about.badge": "About Us",
         "sec.about.title": "Committed to your overall well-being",
@@ -154,6 +159,7 @@ const translations = {
         "form.opt.medicamento": "Medication Claims",
         "form.opt.afiliacion": "Affiliations and Transfers",
         "form.opt.poliza": "Health Policies and Prepaid Plans",
+        "form.opt.internacional": "International Patient Counseling",
         "form.opt.otro": "Other procedure",
         "form.label.desc": "What do you need to manage? (Brief explanation)",
         "form.plc.desc": "Briefly describe your need so our team can review it...",
