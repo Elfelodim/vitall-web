@@ -204,7 +204,10 @@ function renderTabla(lista) {
         
         tr.innerHTML = `
             <td style="color: #64748b; font-size: 0.85rem;">${formatearFecha(ticket.created_at)}</td>
-            <td class="td-name">${ticket.nombre_completo}</td>
+            <td class="td-name">
+                <div style="font-weight: 600;">${ticket.nombre_completo}</div>
+                ${ticket.correo ? `<div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.2rem;"><i class="ph-fill ph-envelope-simple"></i> ${ticket.correo}</div>` : ''}
+            </td>
             <td>
                 <a href="https://wa.me/57${ticket.telefono.replace(/\s+/g, '')}" target="_blank" style="color: var(--green); display: flex; align-items: center; gap: 0.3rem; font-weight: 500;">
                     <i class="ph-fill ph-whatsapp-logo"></i> ${ticket.telefono}
@@ -314,23 +317,21 @@ function descargarExcel() {
         return;
     }
 
-    // Cabeceras
-    const headers = ['Fecha de Solicitud', 'Paciente', 'Teléfono', 'Trámite', 'Estado', 'Observaciones'];
-    
-    // Crear el contenido CSV
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM para acentos en Excel
-    csvContent += headers.join(';') + '\r\n'; // Delimitador punto y coma
+    // Cabeceras del CSV
+    const headers = ["Fecha", "Paciente", "Telefono", "Correo", "Tramite", "Estado", "Observaciones"];
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(";") + "\r\n";
 
     data.forEach(t => {
         const fecha = formatearFecha(t.created_at).replace(/;/g, ',');
         const nombre = (t.nombre_completo || '').replace(/;/g, ',').replace(/\n/g, ' ');
         const telefono = (t.telefono || '').replace(/;/g, ',').replace(/\n/g, ' ');
+        const correo = (t.correo || '').replace(/;/g, ',').replace(/\n/g, ' ');
         const tramite = (t.tipo_tramite || '').replace(/;/g, ',').replace(/\n/g, ' ');
         const estado = (t.estado || 'Pendiente').replace(/;/g, ',').replace(/\n/g, ' ');
         const obs = (t.observaciones || '').replace(/;/g, ',').replace(/\n/g, ' ');
 
-        const row = [fecha, nombre, telefono, tramite, estado, obs];
-        csvContent += row.join(';') + '\r\n';
+        const row = [fecha, nombre, telefono, correo, tramite, estado, obs];
+        csvContent += row.join(";") + "\r\n";
     });
 
     const encodedUri = encodeURI(csvContent);

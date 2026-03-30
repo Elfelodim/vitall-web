@@ -191,8 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const serviceType = document.getElementById('serviceType').value;
                 const observations = document.getElementById('observations').value || 'Ninguna';
                 
-                const dbObservations = `(Correo: ${emailAddress}) - ${observations}`;
-                
                 let fileUrls = [];
                 const fileInput = document.getElementById('fileUpload');
 
@@ -233,9 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         { 
                             nombre_completo: fullName, 
                             telefono: phone, 
+                            correo: emailAddress,
                             tipo_tramite: serviceType,
                             archivo_url: finalFileUrl,
-                            observaciones: dbObservations,
+                            observaciones: observations,
                             consentimiento_datos: true
                         }
                     ]);
