@@ -52,49 +52,58 @@ const Auth = {
     },
 
     async login(email, password) {
-        let validUser = null;
-        let pHash = await this.hashPassword(password);
-
-        // 1. Intenta validar contra la base de datos Supabase
         try {
             const client = this.getClient();
-            if(client) {
-                const { data, error } = await client
-                    .from('usuarios')
-                    .select('*')
-                    .eq('email', email)
-                    .eq('password_hash', pHash)
-                    .single();
-                    
-                if(!error && data) {
-                    // Validamos si la columna existe y es parseada
-                    data.modulos = typeof data.modulos === 'string' ? JSON.parse(data.modulos) : data.modulos;
-                    data.tramites = typeof data.tramites === 'string' ? JSON.parse(data.tramites) : data.tramites;
-                    validUser = data;
-                }
+            if(!client) return 'FAILED';
+
+            // 1. Iniciamos sesión REAL en el motor de seguridad de Supabase
+            const { data: authData, error: authError } = await client.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            // Si falla la contraseña o no existe en la sección Authentication de Supabase
+            if (authError || !authData.user) {
+                console.warn("Credenciales inválidas en Supabase Auth:", authError);
+                return 'FAILED';
             }
-        } catch(e) {
-            console.warn("Tabla usuarios en Supabase no encontrada o con formato incorrecto. Usando modo local (Prototipo).");
-        }
 
-        // 2. Si no encontró en BD, busca en Mock (donde la clave está cruda)
-        if(!validUser) {
-            validUser = this.mockUsers.find(u => u.email === email && u.password === password);
-        }
+            // 2. Traer permisos y módulos (Perfil del Usuario) desde la tabla 'usuarios'
+            const { data: profileData, error: profileError } = await client
+                .from('usuarios')
+                .select('*')
+                .eq('email', email)
+                .single();
 
-        if(validUser) {
+            let validUser = null;
+            if(!profileError && profileData) {
+                // Parseamos los JSON de permisos
+                profileData.modulos = typeof profileData.modulos === 'string' ? JSON.parse(profileData.modulos) : profileData.modulos;
+                profileData.tramites = typeof profileData.tramites === 'string' ? JSON.parse(profileData.tramites) : profileData.tramites;
+                validUser = profileData;
+            } else {
+                // Si el usuario existe en Login pero aún no lo has guardado en la tabla de permisos, le damos permisos base temporal
+                validUser = { email: email, nombre: 'Asesor Autorizado', modulos: ['gestion', 'admin', 'sistemas'], tramites: [], must_change_password: false };
+            }
+
+            // Mantenemos la variable en navegador para no desconfigurar tu página visualmente
             localStorage.setItem('clicksalud_session', JSON.stringify(validUser));
             
-            // Si el usuario necesita cambiar clave
-            if(validUser.must_change_password) {
-                return 'CHANGE_PASSWORD';
-            }
+            if(validUser.must_change_password) return 'CHANGE_PASSWORD';
             return 'SUCCESS';
+            
+        } catch(e) {
+            console.error("Error en el login:", e);
+            return 'FAILED';
         }
-        return 'FAILED';
     },
 
-    logout() {
+    async logout() {
+        const client = this.getClient();
+        if(client) {
+            // Elimina la sesión maestra de seguridad en Supabase
+            await client.auth.signOut();
+        }
         localStorage.removeItem('clicksalud_session');
         window.location.href = 'login.html';
     },
